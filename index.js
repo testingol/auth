@@ -91,12 +91,10 @@ class AuthGenerator {
             const sock = makeWASocket({
                 auth: state,
                 browser: ['Auth Generator', 'Chrome', '1.0.0'],
-                logger: require('pino')({ level: 'silent' })
+                logger: require('pino')({ level: 'silent' }),
+                version: [2, 2323, 4],
+                mobile: true
             });
-
-            const code = await sock.requestPairingCode(number);
-            console.log('\n🔑 Your pairing code:', code);
-            console.log('\n⚡ Enter this code in your WhatsApp app\n');
 
             sock.ev.on('connection.update', async (update) => {
                 const { connection, lastDisconnect } = update;
@@ -115,6 +113,20 @@ class AuthGenerator {
                     }
                 }
             });
+
+            try {
+                const cleanNumber = number.replace(/[^0-9]/g, '');
+                const code = await sock.requestPairingCode(cleanNumber);
+                console.log('\n🔑 Your pairing code:', code);
+                console.log('\n⚡ Enter this code in your WhatsApp app:');
+                console.log('1. Open WhatsApp');
+                console.log('2. Go to Settings > Linked Devices');
+                console.log('3. Click "Link a Device"');
+                console.log('4. Enter the code shown above\n');
+            } catch (error) {
+                console.error('\n❌ Error generating pairing code:', error.message);
+                process.exit(1);
+            }
 
         } catch (error) {
             console.error('\n❌ Error in pairing auth:', error);
